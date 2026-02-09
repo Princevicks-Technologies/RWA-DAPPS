@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Savings Vault</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { margin: 10px; padding: 10px 20px; }
+        pre { background: #f0f0f0; padding: 10px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>Debug Savings Vault</h1>
+    
+    <button onclick="connect()">1. Connect Wallet</button><br>
+    <button onclick="debug()">2. Debug UTxOs</button><br>
+    <button onclick="createTestVault()">3. Create Test Vault</button><br>
+    <button onclick="fetchVaults()">4. Fetch Vaults</button>
+    
+    <div id="output"></div>
+    
+    <script type="module">
+        import { 
+            init, 
+            fetchVaults, 
+            createVault, 
+            debugAllUtxos 
+        } from "./lucid.js";
+        
+        const output = document.getElementById('output');
+        
+        async function connect() {
+            output.innerHTML = '<pre>Connecting wallet...</pre>';
+            try {
+                await init();
+                output.innerHTML += '<pre>✅ Wallet connected successfully</pre>';
+            } catch (error) {
+                output.innerHTML += `<pre>❌ Error: ${error.message}</pre>`;
+            }
+        }
+        
+        async function debug() {
+            output.innerHTML += '<pre>Debugging UTxOs...</pre>';
+            try {
+                await debugAllUtxos();
+                output.innerHTML += '<pre>✅ Debug complete (check console)</pre>';
+            } catch (error) {
+                output.innerHTML += `<pre>❌ Error: ${error.message}</pre>`;
+            }
+        }
+        
+        async function createTestVault() {
+            output.innerHTML += '<pre>Creating test vault...</pre>';
+            try {
+                const result = await createVault(100, "Test Vault");
+                output.innerHTML += `<pre>✅ Test vault created! 
+TX: ${result.txHash}
+Vault ID: ${result.vaultId}</pre>`;
+            } catch (error) {
+                output.innerHTML += `<pre>❌ Error: ${error.message}</pre>`;
+            }
+        }
+        
+        async function fetchVaultsTest() {
+            output.innerHTML += '<pre>Fetching vaults...</pre>';
+            try {
+                const vaults = await fetchVaults();
+                output.innerHTML += `<pre>✅ Found ${vaults.length} vault(s)</pre>`;
+                console.log("Vaults:", vaults);
+            } catch (error) {
+                output.innerHTML += `<pre>❌ Error: ${error.message}</pre>`;
+            }
+        }
+        
+        // Make functions global
+        window.connect = connect;
+        window.debug = debug;
+        window.createTestVault = createTestVault;
+        window.fetchVaults = fetchVaultsTest;
+    </script>
+</body>
+</html>

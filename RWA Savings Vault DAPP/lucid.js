@@ -1,0 +1,221 @@
+import {
+  Lucid,
+  Blockfrost,
+  Data,
+  fromText,
+} from "https://unpkg.com/lucid-cardano@0.10.11/web/mod.js";
+
+/* =====================================================
+   CONFIG
+===================================================== */
+const BLOCKFROST_URL = "https://cardano-preprod.blockfrost.io/api/v0";
+const BLOCKFROST_KEY = "preprod0O6SjjksMSvG9Kjq4baXnZ465Zl5Nk5V";
+const NETWORK = "Preprod";
+
+/* =====================================================
+   PLUTUS SCRIPT
+===================================================== */
+export const SCRIPT = {
+  type: "PlutusV2",
+  script: "<<< 590c870100003232332233223232323322323232323232323232323232323232323232323232323232223232322323253353232323350022322533553353300f35004220023550022222003102813357389201136e6f74207369676e6564206279206f776e657200027153355335333573466e240052000027028102813357389201186465706f736974206d75737420626520706f7369746976650002715335333573466e1cd4cc05c00d4ccd4d54cd4c0400104c0a92622153350011002221302e49888880084c98c80b0cd5ce248115657870656374656420696e6c696e6520646174756d00030213016001213263202d335738920115657870656374656420696e6c696e6520646174756d000312222001337006aa004444400200205004e2050266ae7124011a6465706f736974656420616d6f756e7420696e636f7272656374000271027102713301500100423253355335333573466e20d540048888004d54004888800809809c409c4cd5ce248112746172676574206e6f742072656163686564000261533553353300e3500322002355001222200310271335738921176d757374206265207369676e6564206279206f776e6572000261533533335530111200133501222230033002001200122028300f003027102713357389211d6e6f20636f6e74696e75696e67206f757470757420657870656374656400026102610261330150010043333573466e1cd55cea80224000466442466002006004646464646464646464646464646666ae68cdc39aab9d500c480008cccccccccccc88888888888848cccccccccccc00403403002c02802402001c01801401000c008cd4084094d5d0a80619a8108129aba1500b33502102635742a014666aa050eb9409cd5d0a804999aa8143ae502735742a01066a04205a6ae85401cccd540a00b9d69aba150063232323333573466e1cd55cea801240004664424660020060046464646666ae68cdc39aab9d5002480008cc8848cc00400c008cd40e1d69aba150023039357426ae8940088c98c80fccd5ce01e02181e89aab9e5001137540026ae854008c8c8c8cccd5cd19b8735573aa004900011991091980080180119a81c3ad35742a00460726ae84d5d1280111931901f99ab9c03c04303d135573ca00226ea8004d5d09aba2500223263203b33573807007e07226aae7940044dd50009aba1500533502175c6ae854010ccd540a00a88004d5d0a801999aa8143ae200135742a00460586ae84d5d1280111931901b99ab9c03403b035135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d55cf280089baa00135742a00860386ae84d5d1280211931901499ab9c02602d0273333573466e1d401520022321223001003375c6ae84d55cf280411999ab9a3370ea00c900011991091198010020019bae35742a0106eb4d5d09aba2500823263202933573804c05a04e04c601e01020542c26aae7940044dd500089aab9d5002135573ca00226ea800488d40088888888888894cd4ccd54c04448005404094cd4ccd5cd19b8f00e00102802713502f0011502e004210281026253353500122350022222222222223333500d2502e2502e2502e23335530121200150112350012253355335333573466e3cd400888008d4010880080ac0a84ccd5cd19b873500222001350042200102b02a102a1350320031503100d21350012235001222235008223500222222222222233355301e120012235002222253353501822350062232335005233500425335333573466e3c0080040ec0e85400c40e880e88cd401080e894cd4ccd5cd19b8f00200103b03a15003103a153350032153350022133500223350022335002233500223302a002001203d2335002203d23302a00200122203d222335004203d2225335333573466e1c01800c1000fc54cd4ccd5cd19b8700500204003f1333573466e1c0100041000fc40fc40fc40e054cd4004840e040e04cd40e0018014401540cc0284c98c8074cd5ce2481024c66000211335002225335002210031001501d3200135501f2211222533500113500322001221333500522002300400233355300712001005004001122123300100300222333573466e3c0080040580548c8cccd5cd19b8735573aa0029000119a8021191919191999ab9a3370e6aae7540112000233332222123333001005004003002375c6ae854010dd71aba15003375a6ae854008dd69aba135744a004464c6404066ae700740900784d5d1280089aba25001135573ca00226ea8004d5d09aab9e500223263201a33573802e03c03026ea800448c88c008dd6000990009aa80e111999aab9f0012501b233501a30043574200460066ae88008074894cd4ccd54c00c48004894cd4ccd5cd19b8f350022222004004015014133501900200110015018001130044988854cd40044008884c0212632001355019221122253350011002221330050023335530071200100500400123263201433573892010f7661756c74206e6f7420666f756e6400018232323333573466e1cd55cea8012400046644246600200600460146ae854008c014d5d09aba2500223263201633573802603402826aae7940044dd50009191919191999ab9a3370e6aae75401120002333322221233330010050040030023232323333573466e1cd55cea8012400046644246600200600460266ae854008cd4034048d5d09aba2500223263201b33573803003e03226aae7940044dd50009aba150043335500875ca00e6ae85400cc8c8c8cccd5cd19b875001480108c84888c008010d5d09aab9e500323333573466e1d4009200223212223001004375c6ae84d55cf280211999ab9a3370ea00690001091100191931900e99ab9c01a02101b01a019135573aa00226ea8004d5d0a80119a804bae357426ae8940088c98c805ccd5ce00a00d80a89aba25001135744a00226aae7940044dd5000899aa800bae75a224464460046eac004c8004d5405888c8cccd55cf8011280b119a80a9991091980080180118031aab9d5002300535573ca00460086ae8800c0604d5d080089119191999ab9a3370ea002900011a80b18029aba135573ca00646666ae68cdc3a801240044a02c464c6402866ae700440600480444d55cea80089baa001232323333573466e1d400520062321222230040053007357426aae79400c8cccd5cd19b875002480108c848888c008014c024d5d09aab9e500423333573466e1d400d20022321222230010053007357426aae7940148cccd5cd19b875004480008c848888c00c014dd71aba135573ca00c464c6402866ae7004406004804404003c4d55cea80089baa001232323333573466e1cd55cea80124000466442466002006004600a6ae854008dd69aba135744a004464c6402066ae700340500384d55cf280089baa0012323333573466e1cd55cea800a400046eb8d5d09aab9e500223263200e33573801602401826ea80048c8c8c8c8c8cccd5cd19b8750014803084888888800c8cccd5cd19b875002480288488888880108cccd5cd19b875003480208cc8848888888cc004024020dd71aba15005375a6ae84d5d1280291999ab9a3370ea00890031199109111111198010048041bae35742a00e6eb8d5d09aba2500723333573466e1d40152004233221222222233006009008300c35742a0126eb8d5d09aba2500923333573466e1d40192002232122222223007008300d357426aae79402c8cccd5cd19b875007480008c848888888c014020c038d5d09aab9e500c23263201733573802803602a02802602402202001e26aae7540104d55cf280189aab9e5002135573ca00226ea80048c8c8c8c8cccd5cd19b875001480088ccc888488ccc00401401000cdd69aba15004375a6ae85400cdd69aba135744a00646666ae68cdc3a80124000464244600400660106ae84d55cf280311931900819ab9c00d01400e00d135573aa00626ae8940044d55cf280089baa001232323333573466e1d400520022321223001003375c6ae84d55cf280191999ab9a3370ea004900011909118010019bae357426aae7940108c98c8034cd5ce00500880580509aab9d50011375400224464646666ae68cdc3a800a40084244400246666ae68cdc3a8012400446424446006008600c6ae84d55cf280211999ab9a3370ea00690001091100111931900719ab9c00b01200c00b00a135573aa00226ea80048c8cccd5cd19b8750014800880148cccd5cd19b8750024800080148c98c8028cd5ce00380700400389aab9d375400224400424400292103505431002326320033357389212665787065637465642065786163746c79206f6e6520636f6e74696e75696e67206f7574707574000074984488008488488cc00401000c48488c00800c448800448004448c8c00400488cc00cc0080080041 >>>",
+};
+
+/* =====================================================
+   DATUM SCHEMA (MATCHES HASKELL EXACTLY)
+===================================================== */
+const VaultSchema = Data.Object({
+  vId: Data.Bytes(),
+  vOwner: Data.Bytes(),
+  vTarget: Data.Integer(),
+  vDeposited: Data.Integer(),
+});
+
+const VaultDatumSchema = Data.Object({
+  vaults: Data.Array(VaultSchema),
+});
+
+/* =====================================================
+   REDEEMERS
+===================================================== */
+const depositRedeemer = (vaultId, amountAda) =>
+  Data.to({
+    Deposit: [
+      fromText(vaultId),
+      BigInt(amountAda) * 1_000_000n,
+    ],
+  });
+
+const withdrawRedeemer = (vaultId) =>
+  Data.to({
+    Withdraw: [fromText(vaultId)],
+  });
+
+/* =====================================================
+   GLOBAL STATE
+===================================================== */
+let lucid;
+let walletAddress;
+let scriptAddress;
+
+/* =====================================================
+   INTERNAL HELPERS
+===================================================== */
+const adaToLovelace = (ada) => BigInt(ada) * 1_000_000n;
+
+const bytesEqual = (a, b) =>
+  Buffer.from(a).toString("hex") === Buffer.from(b).toString("hex");
+
+/* =====================================================
+   INIT WALLET (FIXED)
+===================================================== */
+export async function init() {
+  const wallet =
+    window.cardano?.nami ||
+    window.cardano?.eternl ||
+    window.cardano?.lace;
+
+  if (!wallet) throw new Error("No supported wallet found");
+
+  // 1️⃣ ENABLE WALLET FIRST
+  const walletApi = await wallet.enable();
+
+  // 2️⃣ VERIFY BLOCKFROST KEY (PREVENTS BigInt(undefined))
+  const health = await fetch(`${BLOCKFROST_URL}/health`, {
+    headers: { project_id: BLOCKFROST_KEY },
+  });
+
+  if (!health.ok) {
+    throw new Error("Invalid Blockfrost key or wrong network");
+  }
+
+  // 3️⃣ CREATE LUCID
+  lucid = await Lucid.new(
+    new Blockfrost(BLOCKFROST_URL, BLOCKFROST_KEY),
+    NETWORK
+  );
+
+  // 4️⃣ ATTACH WALLET
+  lucid.selectWallet(walletApi);
+
+  // 5️⃣ ADDRESSES
+  walletAddress = await lucid.wallet.address();
+  scriptAddress = lucid.utils.validatorToAddress(SCRIPT);
+
+  return walletAddress;
+}
+
+/* =====================================================
+   PKH
+===================================================== */
+const getPKH = () =>
+  lucid.utils.getAddressDetails(walletAddress).paymentCredential.hash;
+
+/* =====================================================
+   WALLET INFO
+===================================================== */
+export async function getBalanceAda() {
+  const utxos = await lucid.wallet.getUtxos();
+  const total = utxos.reduce(
+    (s, u) => s + (u.assets.lovelace ?? 0n),
+    0n
+  );
+  return Number(total / 1_000_000n);
+}
+
+/* =====================================================
+   FETCH SCRIPT VAULTS
+===================================================== */
+export async function fetchVaultUtxos() {
+  const utxos = await lucid.utxosAt(scriptAddress);
+
+  return utxos
+    .filter((u) => u.datum)
+    .map((u) => ({
+      utxo: u,
+      datum: Data.from(u.datum, VaultDatumSchema),
+    }));
+}
+
+/* =====================================================
+   CREATE VAULT
+===================================================== */
+export async function createVault(vaultId, targetAda) {
+  const vault = {
+    vId: fromText(vaultId),
+    vOwner: getPKH(),
+    vTarget: adaToLovelace(targetAda),
+    vDeposited: 0n,
+  };
+
+  const datum = Data.to({ vaults: [vault] }, VaultDatumSchema);
+
+  const tx = await lucid
+    .newTx()
+    .payToContract(
+      scriptAddress,
+      { inline: datum },
+      { lovelace: 2_000_000n } // min ADA
+    )
+    .complete();
+
+  return await (await tx.sign().complete()).submit();
+}
+
+/* =====================================================
+   DEPOSIT (FIXED VAULT MATCHING)
+===================================================== */
+export async function depositToVault(utxo, vaultId, amountAda) {
+  const deposit = adaToLovelace(amountAda);
+  const datum = Data.from(utxo.datum, VaultDatumSchema);
+
+  const vault = datum.vaults.find((v) =>
+    bytesEqual(v.vId, fromText(vaultId))
+  );
+
+  if (!vault) throw new Error("Vault not found");
+
+  vault.vDeposited += deposit;
+
+  const newDatum = Data.to(datum, VaultDatumSchema);
+
+  const tx = await lucid
+    .newTx()
+    .collectFrom([utxo], depositRedeemer(vaultId, amountAda))
+    .attachSpendingValidator(SCRIPT)
+    .payToContract(
+      scriptAddress,
+      { inline: newDatum },
+      {
+        lovelace: (utxo.assets.lovelace ?? 0n) + deposit,
+      }
+    )
+    .addSignerKey(vault.vOwner)
+    .complete();
+
+  return await (await tx.sign().complete()).submit();
+}
+
+/* =====================================================
+   WITHDRAW
+===================================================== */
+export async function withdrawFromVault(utxo, vaultId) {
+  const datum = Data.from(utxo.datum, VaultDatumSchema);
+
+  const vault = datum.vaults.find((v) =>
+    bytesEqual(v.vId, fromText(vaultId))
+  );
+
+  if (!vault) throw new Error("Vault not found");
+
+  const tx = await lucid
+    .newTx()
+    .collectFrom([utxo], withdrawRedeemer(vaultId))
+    .attachSpendingValidator(SCRIPT)
+    .payToAddress(walletAddress, {
+      lovelace: vault.vDeposited,
+    })
+    .addSignerKey(vault.vOwner)
+    .complete();
+
+  return await (await tx.sign().complete()).submit();
+}
