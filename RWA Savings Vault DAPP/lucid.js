@@ -1,7 +1,20 @@
+// lucid.js — ES Module (Browser)
+// Lucid v0.10.11 + Blockfrost Preprod + Plutus V2
+// Includes:
+//  - Wallet connect (Lace/Nami/Eternl), address + balance
+//  - Off-chain descriptions via localStorage
+//  - Create / Deposit / Withdraw
+//  - Robust Refresh (handles Blockfrost indexing delay)
+//  - Blockfrost submit fallback when wallet submit has "Network Error"
+//  - CRITICAL: addSignerKey + wallet fee UTxO hardening for txSignedBy checks
+//
+// NOTE: Your on-chain validator has NO Delete action. "Delete" is implemented as OFF-CHAIN archive (hide locally)
+//       and is only enabled when deposited == 0, as you requested.
+
 import { Lucid, Blockfrost, Constr, Data } from "https://unpkg.com/lucid-cardano@0.10.11/web/mod.js";
 
 /* =========================================================
-   CONFIG
+   CONFIG — PASTE HERE
 ========================================================= */
 export const NETWORK = "Preprod";
 export const BLOCKFROST_URL = "https://cardano-preprod.blockfrost.io/api/v0";
@@ -55,11 +68,13 @@ function safeStringify(obj) {
 function extractErrorDetails(e) {
   const parts = [];
   parts.push(e?.message ? String(e.message) : String(e));
+
   if (e?.info) parts.push("info: " + safeStringify(e.info));
   if (e?.cause) parts.push("cause: " + (e.cause?.message || safeStringify(e.cause)));
   if (e?.data) parts.push("data: " + safeStringify(e.data));
   if (e?.response) parts.push("response: " + safeStringify(e.response));
   if (e?.stack) parts.push("stack: " + String(e.stack).split("\n").slice(0, 8).join("\n"));
+
   return parts.filter(Boolean).join("\n");
 }
 
@@ -81,11 +96,13 @@ function hexToBytes(hex) {
 
 async function blockfrostSubmitTx(txCborHex) {
   const bytes = hexToBytes(txCborHex);
+
   const res = await fetch(`${BLOCKFROST_URL}/tx/submit`, {
     method: "POST",
     headers: { project_id: BLOCKFROST_KEY, "Content-Type": "application/cbor" },
     body: bytes,
   });
+
   const text = await res.text();
   if (!res.ok) throw new Error(`Blockfrost submit failed (${res.status}): ${text}`);
   return text.replace(/"/g, "").trim();
@@ -94,8 +111,9 @@ async function blockfrostSubmitTx(txCborHex) {
 async function signAndSubmit(tx) {
   try {
     const signed = await tx.sign().complete();
+
     try {
-      return await signed.submit();
+      return await signed.submit(); // wallet submit first
     } catch (e1) {
       const d1 = extractErrorDetails(e1);
       console.error("❌ Wallet submit failed:", e1);
@@ -151,16 +169,19 @@ function shortenHex(hex, n = 10) {
 function detectWallet() {
   const c = window.cardano;
   if (!c) return null;
+
   if (c.lace?.enable) return { name: "lace", api: c.lace };
   if (c.eternl?.enable) return { name: "eternl", api: c.eternl };
   if (c.nami?.enable) return { name: "nami", api: c.nami };
+
   const keys = Object.keys(c).filter((k) => c[k]?.enable);
   if (keys.length) return { name: keys[0], api: c[keys[0]] };
+
   return null;
 }
 
 /* =========================================================
-   OFF-CHAIN DESCRIPTIONS
+   OFF-CHAIN DESCRIPTIONS (localStorage)
 ========================================================= */
 function storagePrefix() {
   return `svault:${NETWORK}:${scriptAddress}:${walletPkhHex}:desc:`;
@@ -173,7 +194,7 @@ export function getDescription(vaultIdHex) {
 }
 
 /* =========================================================
-   OFF-CHAIN ARCHIVE (delete = hide locally)
+   OFF-CHAIN ARCHIVE SET (Delete = hide locally)
 ========================================================= */
 function archiveKey() {
   return `svault:${NETWORK}:${scriptAddress}:${walletPkhHex}:archived`;
@@ -194,6 +215,10 @@ function saveArchivedSet(set) {
 
 /* =========================================================
    DATUM / REDEEMER (PlutusTx IsData)
+   Vault      = Constr 0 [vId(bytes), vOwner(bytes), vTarget(int), vDeposited(int)]
+   VaultDatum = Constr 0 [[Vault]]
+   Deposit    = Constr 0 [vaultId(bytes), amount(int)]
+   Withdraw   = Constr 1 [vaultId(bytes)]
 ========================================================= */
 function decodeVault(vData) {
   if (!(vData instanceof Constr) || vData.index !== 0) throw new Error("Bad Vault encoding (expected Constr 0).");
@@ -259,7 +284,7 @@ async function getVaultUtxosForWallet() {
 
       const v = vaults[0];
 
-      // only show vaults whose owner matches connected wallet
+      // Only show vaults owned by this connected wallet
       if (v.vOwnerHex !== walletPkhHex) continue;
 
       mine.push({ utxo: u, vault: v });
@@ -273,7 +298,7 @@ async function getVaultUtxosForWallet() {
 }
 
 /* =========================================================
-   CONNECT
+   CONNECT WALLET
 ========================================================= */
 export async function connectWallet() {
   const w = detectWallet();
@@ -307,7 +332,7 @@ export async function connectWallet() {
 }
 
 /* =========================================================
-   REFRESH
+   REFRESH / WAITERS
 ========================================================= */
 export async function refreshAll({ includeArchived = false } = {}) {
   assertLucid();
@@ -347,6 +372,18 @@ export async function waitForVaults({ tries = 12, delayMs = 2500 } = {}) {
   return last ?? (await refreshAll());
 }
 
+export async function waitForVaultById(vaultIdHex, { tries = 18, delayMs = 2500 } = {}) {
+  assertLucid();
+  let last = null;
+  for (let i = 0; i < tries; i++) {
+    last = await refreshAll();
+    const found = (last.vaults || []).some((v) => v.vIdHex === vaultIdHex);
+    if (found) return last;
+    await new Promise((r) => setTimeout(r, delayMs));
+  }
+  return last ?? (await refreshAll());
+}
+
 /* =========================================================
    TX HELPERS
 ========================================================= */
@@ -368,9 +405,6 @@ function addLovelace(assets, delta) {
   return a;
 }
 
-// HARDENING: ensure at least one wallet UTxO participates (fee payer input is enough)
-// In some edge flows, having only script input can cause signatories behavior issues.
-// This keeps it safe and deterministic.
 async function pickWalletUtxo() {
   const utxos = await lucid.wallet.getUtxos();
   if (!utxos.length) throw new Error("Wallet has no UTxOs to pay fees.");
@@ -407,7 +441,7 @@ export async function createVault({ targetAda, initialDepositAda, description })
 }
 
 /* =========================================================
-   DEPOSIT  ✅ FIXED SIGNER HANDLING
+   DEPOSIT
 ========================================================= */
 export async function depositToVault({ vaultIdHex, amountAda }) {
   assertLucid();
@@ -421,11 +455,9 @@ export async function depositToVault({ vaultIdHex, amountAda }) {
 
   const { utxo, vault } = found;
 
-  // 🔎 sanity check to make debugging impossible-to-miss
+  // If this triggers, your datum owner encoding is wrong relative to wallet pkh derivation
   if (vault.vOwnerHex !== walletPkhHex) {
-    throw new Error(
-      `Owner mismatch.\nDatum owner: ${vault.vOwnerHex}\nWallet pkh:  ${walletPkhHex}`
-    );
+    throw new Error(`Owner mismatch.\nDatum owner: ${vault.vOwnerHex}\nWallet pkh:  ${walletPkhHex}`);
   }
 
   const newVault = { ...vault, vDeposited: vault.vDeposited + amount };
@@ -434,14 +466,13 @@ export async function depositToVault({ vaultIdHex, amountAda }) {
   const validator = getValidator();
   const newAssets = addLovelace(utxo.assets, amount);
 
-  // harden: ensure wallet input exists + ensure signatory is required
   const feeUtxo = await pickWalletUtxo();
 
   const tx = await lucid
     .newTx()
     .addSignerKey(walletPkhHex)
-    .addSignerKey(vault.vOwnerHex) // ✅ must match datum owner EXACTLY
-    .collectFrom([feeUtxo])        // ✅ ensure wallet input in tx
+    .addSignerKey(vault.vOwnerHex)
+    .collectFrom([feeUtxo]) // harden signatories behavior + fees
     .collectFrom([utxo], Data.to(redeemerDeposit(vaultIdHex, amount)))
     .attachSpendingValidator(validator)
     .payToContract(scriptAddress, { inline: newDatumCbor }, newAssets)
@@ -452,7 +483,7 @@ export async function depositToVault({ vaultIdHex, amountAda }) {
 }
 
 /* =========================================================
-   WITHDRAW ✅ FIXED SIGNER HANDLING
+   WITHDRAW
 ========================================================= */
 export async function withdrawVault({ vaultIdHex }) {
   assertLucid();
@@ -468,9 +499,7 @@ export async function withdrawVault({ vaultIdHex }) {
   }
 
   if (vault.vOwnerHex !== walletPkhHex) {
-    throw new Error(
-      `Owner mismatch.\nDatum owner: ${vault.vOwnerHex}\nWallet pkh:  ${walletPkhHex}`
-    );
+    throw new Error(`Owner mismatch.\nDatum owner: ${vault.vOwnerHex}\nWallet pkh:  ${walletPkhHex}`);
   }
 
   const validator = getValidator();
@@ -491,7 +520,7 @@ export async function withdrawVault({ vaultIdHex }) {
 }
 
 /* =========================================================
-   DELETE (OFF-CHAIN archive only; on-chain Delete not in your validator)
+   DELETE (OFF-CHAIN archive only)
 ========================================================= */
 export async function deleteVault({ vaultIdHex }) {
   assertLucid();
@@ -513,7 +542,7 @@ export async function deleteVault({ vaultIdHex }) {
 }
 
 /* =========================================================
-   UI
+   UI HELPER
 ========================================================= */
 export function shortenId(id) {
   return shortenHex(id, 10);
