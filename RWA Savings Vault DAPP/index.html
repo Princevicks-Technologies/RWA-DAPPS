@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>Savings Vault DApp</title>
-
 <style>
 :root {
   --navy: #0b1c2d;
@@ -14,307 +13,137 @@
   --card: #ffffff;
 }
 
-* {
-  box-sizing: border-box;
-  font-family: "Segoe UI", system-ui, sans-serif;
-}
+* { box-sizing: border-box; font-family: "Segoe UI", system-ui, sans-serif; }
+body { margin: 0; background: var(--muted); color: var(--navy); }
 
-body {
-  margin: 0;
-  background: var(--muted);
-  color: var(--navy);
-}
-
-/* ===== Header ===== */
 header {
-  background: var(--navy);
-  color: var(--white);
+  background: var(--navy); color: var(--white);
   padding: 20px 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: flex; justify-content: space-between; align-items: center;
 }
+header h1 { margin: 0; font-size: 1.6rem; }
+button { background: var(--accent); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s ease; }
+button:hover { transform: scale(1.05); opacity: 0.9; }
+button.success { background: #1fa971; }
 
-header h1 {
-  margin: 0;
-  font-size: 1.6rem;
-}
+main { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 30px; }
+.card { background: var(--card); border-radius: 12px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); transition: transform 0.3s ease; }
+.card:hover { transform: translateY(-5px); }
+.card h2 { margin-top: 0; }
 
-/* ===== Buttons ===== */
-button {
-  background: var(--accent);
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.3s ease;
-}
+.form-group { display: flex; gap: 16px; flex-wrap: wrap; }
+.form-group input { flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #ddd; }
 
-button:hover {
-  transform: scale(1.05);
-  opacity: 0.9;
-}
+.vault { border: 1px solid #eee; padding: 16px; border-radius: 8px; margin-bottom: 12px; display: grid; grid-template-columns: 1fr auto; gap: 10px; background: #f9fbff; animation: fadeIn 0.4s ease forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.vault-actions button { margin-left: 8px; }
+.status { margin-top: 8px; font-size: 0.9rem; }
 
-button.success {
-  background: #1fa971;
-}
-
-/* ===== Layout ===== */
-main {
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 0 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-/* ===== Cards ===== */
-.card {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  transition: transform 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-}
-
-.card h2 {
-  margin-top: 0;
-}
-
-/* ===== Forms ===== */
-.form-group {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.form-group input {
-  flex: 1;
-  padding: 12px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-}
-
-/* ===== Vault ===== */
-.vault {
-  border: 1px solid #eee;
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  background: #f9fbff;
-  animation: fadeIn 0.4s ease forwards;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.vault-actions button {
-  margin-left: 8px;
-}
-
-.status {
-  margin-top: 8px;
-  font-size: 0.9rem;
-}
-
-/* ===== Wallet Info ===== */
-#walletInfo {
-  font-size: 0.9rem;
-  display: flex;
-  flex-direction: column;
-}
-
-.balance {
-  font-weight: bold;
-}
+#walletInfo { font-size: 0.9rem; display: flex; flex-direction: column; }
+.balance { font-weight: bold; }
 </style>
 </head>
-
 <body>
 
 <header>
   <div>
     <h1>💼 Savings Vault</h1>
-    <div id="walletInfo">
-      Wallet: Not connected
-      <span class="balance">Balance: 0 ADA</span>
-    </div>
+    <div id="walletInfo">Wallet: Not connected <span class="balance">Balance: 0 ADA</span></div>
   </div>
   <button id="connectBtn">Connect Wallet</button>
 </header>
 
 <main>
-
-  <!-- CREATE VAULT -->
   <div class="card">
     <h2>Create Vault</h2>
     <div class="form-group">
       <input id="targetInput" type="number" placeholder="Target Amount (ADA)" />
-      <input id="descInput" type="text" placeholder="Vault Description (off-chain)" />
+      <input id="descInput" type="text" placeholder="Vault Description" />
       <button id="createBtn">Create</button>
     </div>
     <div class="status" id="createStatus"></div>
   </div>
 
-  <!-- VAULTS -->
   <div class="card">
     <h2>Your Vaults</h2>
     <button id="refreshBtn">Refresh Vaults</button>
     <div id="vaultList">No vaults loaded.</div>
   </div>
-
 </main>
 
 <script type="module">
-import {
-  Lucid,
-  Blockfrost,
-  Data,
-  fromText
-} from "https://unpkg.com/lucid-cardano@0.10.11/web/mod.js";
+import * as LucidApp from "./lucid.js";
 
-/* ================= CONFIG ================= */
-const BLOCKFROST_URL = "https://cardano-preprod.blockfrost.io/api/v0";
-const BLOCKFROST_KEY = "PUT_BLOCKFROST_KEY";
-const NETWORK = "Preprod";
-
-/* ===== INSERT YOUR SCRIPT ===== */
-const SCRIPT = {
-  type: "PlutusV2",
-  script: "PUT_VALIDATOR_CBOR_HERE"
-};
-
-/* ================= STATE ================= */
-let lucid, walletAddress, scriptAddress;
-
-/* ================= WALLET ================= */
-async function connectWallet() {
-  const api =
-    window.cardano?.nami ||
-    window.cardano?.eternl ||
-    window.cardano?.lace;
-
-  if (!api) throw new Error("No wallet found");
-
-  lucid = await Lucid.new(
-    new Blockfrost(BLOCKFROST_URL, BLOCKFROST_KEY),
-    NETWORK
-  );
-
-  lucid.selectWallet(await api.enable());
-  walletAddress = await lucid.wallet.address();
-  scriptAddress = lucid.utils.validatorToAddress(SCRIPT);
-}
-
-const getBalance = async () => {
-  const utxos = await lucid.wallet.getUtxos();
-  return Number(
-    utxos.reduce((s,u)=>s+(u.assets.lovelace||0n),0n) / 1_000_000n
-  );
-};
-
-/* ================= VAULT LOGIC ================= */
-const VaultDatum = Data.Object({
-  vaults: Data.Array(
-    Data.Object({
-      vId: Data.Bytes(),
-      vOwner: Data.Bytes(),
-      vTarget: Data.Integer(),
-      vDeposited: Data.Integer()
-    })
-  )
-});
-
-async function fetchVaults() {
-  const utxos = await lucid.utxosAt(scriptAddress);
-  return utxos
-    .filter(u => u.datum)
-    .map(u => ({
-      utxo: u,
-      datum: Data.from(u.datum, VaultDatum)
-    }));
-}
-
-/* ================= UI ================= */
 const connectBtn = document.getElementById("connectBtn");
+const createBtn = document.getElementById("createBtn");
+const refreshBtn = document.getElementById("refreshBtn");
+
 const walletInfo = document.getElementById("walletInfo");
-const balanceEl = document.querySelector(".balance");
+const balanceEl = walletInfo.querySelector(".balance");
 const vaultList = document.getElementById("vaultList");
 
-connectBtn.onclick = async () => {
-  await connectWallet();
-  connectBtn.innerText = "Wallet Connected";
-  connectBtn.classList.add("success");
-  walletInfo.firstChild.nodeValue = `Wallet: ${walletAddress.slice(0,10)}... `;
-  balanceEl.innerText = `Balance: ${await getBalance()} ADA`;
-  loadVaults();
-};
+async function refreshUI() {
+  await LucidApp.fetchVaults();
 
-document.getElementById("createBtn").onclick = async () => {
-  const target = document.getElementById("targetInput").value;
-  const desc = document.getElementById("descInput").value;
-  if (!target || !desc) return;
+  // Update wallet display
+  if (LucidApp.walletAddress) {
+    walletInfo.innerHTML = `Wallet: ${LucidApp.walletAddress} <span class="balance">Balance: ${LucidApp.walletBalanceAda.toFixed(6)} ADA</span>`;
+    connectBtn.textContent = "Wallet Connected";
+    connectBtn.disabled = true;
+  }
 
-  const vaultId = crypto.randomUUID();
-  localStorage.setItem(vaultId, desc);
-
-  const pkh = lucid.utils.getAddressDetails(walletAddress).paymentCredential.hash;
-
-  const datum = Data.to({
-    vaults: [{
-      vId: fromText(vaultId),
-      vOwner: pkh,
-      vTarget: BigInt(target) * 1_000_000n,
-      vDeposited: 0n
-    }]
-  }, VaultDatum);
-
-  const tx = await lucid.newTx()
-    .payToContract(scriptAddress, { inline: datum }, { lovelace: 0n })
-    .complete();
-
-  await (await tx.sign().complete()).submit();
-  loadVaults();
-};
-
-async function loadVaults() {
-  vaultList.innerHTML = "";
-  const vaults = await fetchVaults();
-  if (!vaults.length) {
-    vaultList.innerText = "No vaults found.";
+  // Render vaults
+  if (!LucidApp.vaults.length) {
+    vaultList.innerHTML = "No vaults loaded.";
     return;
   }
 
-  vaults.forEach(({ utxo, datum }) => {
-    datum.vaults.forEach(v => {
-      const div = document.createElement("div");
-      div.className = "vault";
-      const id = new TextDecoder().decode(v.vId);
-      div.innerHTML = `
-        <div>
-          <strong>${localStorage.getItem(id) || "No description"}</strong><br/>
-          Target: ${Number(v.vTarget)/1e6} ADA<br/>
-          Saved: ${Number(v.vDeposited)/1e6} ADA
-        </div>
-      `;
-      vaultList.appendChild(div);
-    });
+  vaultList.innerHTML = "";
+  LucidApp.vaults.forEach(v => {
+    const div = document.createElement("div");
+    div.className = "vault";
+    div.innerHTML = `
+      <div>
+        <strong>${LucidApp.descriptions[v.vId]?.description || "No description"}</strong><br/>
+        Target: ${(Number(v.vTarget)/1_000_000).toFixed(2)} ADA<br/>
+        Deposited: ${(Number(v.vDeposited)/1_000_000).toFixed(2)} ADA
+      </div>
+      <div class="vault-actions">
+        <button data-id="${v.vId}" class="depositBtn">Deposit</button>
+      </div>
+    `;
+    vaultList.appendChild(div);
+  });
+
+  // Attach deposit handlers
+  vaultList.querySelectorAll(".depositBtn").forEach(btn => {
+    btn.onclick = async () => {
+      const amount = prompt("Amount to deposit (ADA):");
+      if (!amount) return;
+      await LucidApp.deposit(btn.dataset.id, Number(amount));
+      await refreshUI();
+    };
   });
 }
 
-document.getElementById("refreshBtn").onclick = loadVaults;
+connectBtn.onclick = async () => {
+  await LucidApp.connectWallet();
+  await refreshUI();
+};
+
+createBtn.onclick = async () => {
+  const target = Number(document.getElementById("targetInput").value);
+  const desc = document.getElementById("descInput").value.trim();
+  if (!target || !desc) return alert("Enter description and target amount");
+  await LucidApp.createVault(desc, target);
+  await refreshUI();
+};
+
+refreshBtn.onclick = async () => {
+  await refreshUI();
+};
+
+await refreshUI();
 </script>
 
 </body>
