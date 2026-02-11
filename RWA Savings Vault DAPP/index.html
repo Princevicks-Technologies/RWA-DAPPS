@@ -167,7 +167,7 @@
 
     .toast-wrap{position: fixed;right: 14px;bottom: 14px;display:flex;flex-direction:column;gap:10px;z-index: 9999;}
     .toast{
-      width: min(580px, calc(100vw - 28px));
+      width: min(600px, calc(100vw - 28px));
       background: rgba(6,17,31,0.92);
       border: 1px solid rgba(255,255,255,0.14);
       border-radius: 16px;
@@ -238,7 +238,7 @@
 
         <div class="row" style="margin-top:10px; justify-content:space-between; flex-wrap:wrap">
           <button id="createBtn" class="btn btn-primary" disabled>Create Vault</button>
-          <div class="hint" style="max-width: 540px">Refresh is “smart”: it waits for Blockfrost indexing if needed.</div>
+          <div class="hint" style="max-width: 560px">After submit, we auto-sync until your wallet/provider updates UTxOs.</div>
         </div>
       </section>
 
@@ -269,7 +269,8 @@
       withdrawVault,
       deleteVault,
       shortenId,
-      setDescription
+      setDescription,
+      syncUntilChanged
     } from "./lucid.js";
 
     const $ = (id) => document.getElementById(id);
@@ -296,7 +297,7 @@
       const wrap = $("toasts");
       const el = document.createElement("div");
       el.className = `toast ${type}`;
-      const shown = String(msg || "").slice(0, 1800);
+      const shown = String(msg || "").slice(0, 2000);
       el.innerHTML = `<div class="t-title">${title}</div><div class="t-msg">${shown}</div>`;
       wrap.appendChild(el);
       setTimeout(() => el.remove(), ms);
@@ -323,6 +324,37 @@
     }
 
     function num(x){ const n = Number(x); return Number.isFinite(n) ? n : 0; }
+
+    function fingerprint(vaults){
+      return (vaults || [])
+        .map(v => `${v.vIdHex}:${v.depositedLovelace}:${v.targetLovelace}:${v.txHash}:${v.outputIndex}`)
+        .sort()
+        .join("|");
+    }
+
+    async function applyUI(res){
+      walletAddr.textContent = res.walletAddress || "—";
+      walletBal.textContent  = res.balanceAda ? `${res.balanceAda} ADA` : "—";
+      renderVaults(res.vaults || []);
+    }
+
+    async function postTxSync(prevState){
+      toast("ok", "Syncing", "Waiting for wallet/provider to reflect the new UTxOs…", 5000);
+      return await syncUntilChanged({
+        prevBalanceAda: prevState?.balanceAda ?? null,
+        prevVaultFingerprint: prevState?.fp ?? null,
+        tries: 14,
+        delayMs: 2500
+      });
+    }
+
+    async function smartRefresh(){
+      const first = await refreshAll();
+      if ((first.vaults || []).length > 0) return first;
+
+      toast("ok", "Refreshing", "Waiting for Blockfrost indexing…", 5000);
+      return await waitForVaults({ tries: 12, delayMs: 2500 });
+    }
 
     function renderVaults(vaults){
       vaultList.innerHTML = "";
@@ -397,12 +429,15 @@
 
           try{
             setBusy(true);
+
+            const before = await refreshAll();
+            const prev = { balanceAda: before.balanceAda, fp: fingerprint(before.vaults) };
+
             const res = await depositToVault({ vaultIdHex: v.vIdHex, amountAda: amount });
-            toast("ok", "Deposit submitted", `Tx: ${res.txHash}\nWaiting for indexing…`);
-            const r = await waitForVaultById(v.vIdHex, { tries: 18, delayMs: 2500 });
-            walletAddr.textContent = r.walletAddress || "—";
-            walletBal.textContent  = r.balanceAda ? `${r.balanceAda} ADA` : "—";
-            renderVaults(r.vaults || []);
+            toast("ok", "Deposit submitted", `Tx: ${res.txHash}`);
+
+            const synced = await postTxSync(prev);
+            await applyUI(synced);
           } catch(e){
             console.error(e);
             toast("err", "Deposit failed", e?.message || String(e));
@@ -415,12 +450,15 @@
           if (busy) return;
           try{
             setBusy(true);
+
+            const before = await refreshAll();
+            const prev = { balanceAda: before.balanceAda, fp: fingerprint(before.vaults) };
+
             const res = await withdrawVault({ vaultIdHex: v.vIdHex });
-            toast("ok", "Withdraw submitted", `Tx: ${res.txHash}\nWaiting for indexing…`);
-            const r = await waitForVaultById(v.vIdHex, { tries: 18, delayMs: 2500 });
-            walletAddr.textContent = r.walletAddress || "—";
-            walletBal.textContent  = r.balanceAda ? `${r.balanceAda} ADA` : "—";
-            renderVaults(r.vaults || []);
+            toast("ok", "Withdraw submitted", `Tx: ${res.txHash}`);
+
+            const synced = await postTxSync(prev);
+            await applyUI(synced);
           } catch(e){
             console.error(e);
             toast("err", "Withdraw failed", e?.message || String(e));
@@ -435,7 +473,8 @@
             setBusy(true);
             await deleteVault({ vaultIdHex: v.vIdHex });
             toast("ok", "Archived", "Vault hidden locally.");
-            await smartRefresh();
+            const res = await smartRefresh();
+            await applyUI(res);
           } catch(e){
             console.error(e);
             toast("err", "Delete failed", e?.message || String(e));
@@ -446,20 +485,6 @@
 
         vaultList.appendChild(card);
       }
-    }
-
-    async function applyUI(res){
-      walletAddr.textContent = res.walletAddress || "—";
-      walletBal.textContent  = res.balanceAda ? `${res.balanceAda} ADA` : "—";
-      renderVaults(res.vaults || []);
-    }
-
-    async function smartRefresh(){
-      const res = await refreshAll();
-      if ((res.vaults || []).length > 0) return res;
-      // If empty, Blockfrost may still be indexing, so wait a bit
-      toast("ok", "Refreshing", "Waiting for Blockfrost indexing…");
-      return await waitForVaults({ tries: 12, delayMs: 2500 });
     }
 
     connectBtn.addEventListener("click", async () => {
@@ -474,6 +499,7 @@
         refreshBtn.disabled = false;
         createBtn.disabled = false;
         toast("ok", "Connected", `Wallet: ${info.walletName.toUpperCase()}`);
+
         const res = await smartRefresh();
         await applyUI(res);
       } catch(e){
@@ -488,8 +514,11 @@
       if (!connected || busy) return;
       setBusy(true);
       try{
-        const res = await smartRefresh();
-        await applyUI(res);
+        const first = await refreshAll();
+        await applyUI(first);
+
+        const synced = await postTxSync({ balanceAda: first.balanceAda, fp: fingerprint(first.vaults) });
+        await applyUI(synced);
       } catch(e){
         console.error(e);
         toast("err", "Refresh failed", e?.message || String(e));
@@ -508,11 +537,20 @@
 
       try{
         setBusy(true);
+
+        const before = await refreshAll();
+        const prev = { balanceAda: before.balanceAda, fp: fingerprint(before.vaults) };
+
         const res = await createVault({ targetAda: t, initialDepositAda: i, description: d });
         toast("ok", "Vault created", `Tx: ${res.txHash}\nWaiting for indexing…`);
+
         targetAda.value = ""; initialAda.value = ""; desc.value = "";
-        const r = await waitForVaultById(res.vIdHex, { tries: 18, delayMs: 2500 });
-        await applyUI(r);
+
+        const appeared = await waitForVaultById(res.vIdHex, { tries: 18, delayMs: 2500 });
+        await applyUI(appeared);
+
+        const synced = await postTxSync(prev);
+        await applyUI(synced);
       } catch(e){
         console.error(e);
         toast("err", "Create failed", e?.message || String(e));

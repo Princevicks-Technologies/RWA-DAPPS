@@ -4,7 +4,7 @@
 //  - Wallet connect (Lace/Nami/Eternl), address + balance
 //  - Off-chain descriptions via localStorage
 //  - Create / Deposit / Withdraw
-//  - Robust Refresh (handles Blockfrost indexing delay)
+//  - Robust Refresh + Post-Tx Auto Sync (no spam refresh needed)
 //  - Blockfrost submit fallback when wallet submit has "Network Error"
 //  - CRITICAL: addSignerKey + wallet fee UTxO hardening for txSignedBy checks
 //
@@ -215,10 +215,6 @@ function saveArchivedSet(set) {
 
 /* =========================================================
    DATUM / REDEEMER (PlutusTx IsData)
-   Vault      = Constr 0 [vId(bytes), vOwner(bytes), vTarget(int), vDeposited(int)]
-   VaultDatum = Constr 0 [[Vault]]
-   Deposit    = Constr 0 [vaultId(bytes), amount(int)]
-   Withdraw   = Constr 1 [vaultId(bytes)]
 ========================================================= */
 function decodeVault(vData) {
   if (!(vData instanceof Constr) || vData.index !== 0) throw new Error("Bad Vault encoding (expected Constr 0).");
@@ -283,8 +279,6 @@ async function getVaultUtxosForWallet() {
       if (vaults.length !== 1) continue;
 
       const v = vaults[0];
-
-      // Only show vaults owned by this connected wallet
       if (v.vOwnerHex !== walletPkhHex) continue;
 
       mine.push({ utxo: u, vault: v });
@@ -384,6 +378,41 @@ export async function waitForVaultById(vaultIdHex, { tries = 18, delayMs = 2500 
   return last ?? (await refreshAll());
 }
 
+// Post-tx sync: wait until wallet balance OR vault state changes
+export async function syncUntilChanged(
+  { prevBalanceAda = null, prevVaultFingerprint = null, tries = 14, delayMs = 2500 } = {}
+) {
+  assertLucid();
+
+  const fingerprint = (vaults) =>
+    (vaults || [])
+      .map(v => `${v.vIdHex}:${v.depositedLovelace}:${v.targetLovelace}:${v.txHash}:${v.outputIndex}`)
+      .sort()
+      .join("|");
+
+  let last = null;
+
+  for (let i = 0; i < tries; i++) {
+    last = await refreshAll();
+
+    const newBal = last.balanceAda ?? null;
+    const newFp = fingerprint(last.vaults || []);
+
+    const balanceChanged =
+      prevBalanceAda != null && newBal != null && String(newBal) !== String(prevBalanceAda);
+
+    const vaultsChanged =
+      prevVaultFingerprint != null && String(newFp) !== String(prevVaultFingerprint);
+
+    if (prevBalanceAda == null && prevVaultFingerprint == null) return last;
+    if (balanceChanged || vaultsChanged) return last;
+
+    await new Promise(r => setTimeout(r, delayMs));
+  }
+
+  return last ?? (await refreshAll());
+}
+
 /* =========================================================
    TX HELPERS
 ========================================================= */
@@ -455,7 +484,6 @@ export async function depositToVault({ vaultIdHex, amountAda }) {
 
   const { utxo, vault } = found;
 
-  // If this triggers, your datum owner encoding is wrong relative to wallet pkh derivation
   if (vault.vOwnerHex !== walletPkhHex) {
     throw new Error(`Owner mismatch.\nDatum owner: ${vault.vOwnerHex}\nWallet pkh:  ${walletPkhHex}`);
   }
@@ -472,7 +500,7 @@ export async function depositToVault({ vaultIdHex, amountAda }) {
     .newTx()
     .addSignerKey(walletPkhHex)
     .addSignerKey(vault.vOwnerHex)
-    .collectFrom([feeUtxo]) // harden signatories behavior + fees
+    .collectFrom([feeUtxo])
     .collectFrom([utxo], Data.to(redeemerDeposit(vaultIdHex, amount)))
     .attachSpendingValidator(validator)
     .payToContract(scriptAddress, { inline: newDatumCbor }, newAssets)
