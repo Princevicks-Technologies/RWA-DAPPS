@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Savings Vault — Preprod</title>
+    <title>Blockchain Aided Savings — Preprod</title>
     <style>
       :root{
         --bg:#0f0b08;
@@ -15,16 +15,14 @@
         --line:rgba(255,255,255,.12);
         --shadow:0 20px 60px rgba(0,0,0,.35);
 
-        --accent:#c47a3a;          /* burnt chocolate */
+        --accent:#c47a3a;
         --accent2:#ffead6;
         --good:#3ddc84;
         --bad:#ff4d4d;
         --warn:#ffcc66;
 
         --radius:18px;
-        --radius2:14px;
         --pad:18px;
-        --pad2:14px;
 
         --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
@@ -40,7 +38,7 @@
         --line:rgba(27,18,12,.12);
         --shadow:0 18px 55px rgba(0,0,0,.12);
 
-        --accent:#8b4513;          /* burnt chocolate (deeper) */
+        --accent:#8b4513;
         --accent2:#fff2e6;
       }
 
@@ -57,14 +55,9 @@
         color:var(--text);
       }
 
-      a{ color:inherit; text-decoration:none; }
       button,input,select,textarea{ font-family:inherit; }
 
-      .app{
-        min-height:100%;
-        display:flex;
-        flex-direction:column;
-      }
+      .app{ min-height:100%; display:flex; flex-direction:column; }
 
       header{
         position:sticky;
@@ -74,15 +67,11 @@
         background: linear-gradient(to bottom, rgba(0,0,0,.28), rgba(0,0,0,.05));
         border-bottom:1px solid var(--line);
       }
-
       [data-theme="light"] header{
         background: linear-gradient(to bottom, rgba(255,255,255,.78), rgba(255,255,255,.35));
       }
 
-      .wrap{
-        width:min(1180px, 92vw);
-        margin:0 auto;
-      }
+      .wrap{ width:min(1180px, 92vw); margin:0 auto; }
 
       .topbar{
         display:flex;
@@ -92,12 +81,7 @@
         gap:14px;
       }
 
-      .brand{
-        display:flex;
-        align-items:center;
-        gap:12px;
-        min-width:220px;
-      }
+      .brand{ display:flex; align-items:center; gap:12px; }
 
       .logo{
         width:40px;height:40px;border-radius:14px;
@@ -140,13 +124,8 @@
         gap:10px;
         box-shadow: 0 10px 30px rgba(0,0,0,.12);
       }
-
       [data-theme="light"] .pill{ background: rgba(255,255,255,.75); }
-
-      .pill .label{
-        font-size:12px;
-        color:var(--muted2);
-      }
+      .pill .label{ font-size:12px; color:var(--muted2); }
       .pill .value{
         font-size:12px;
         font-family:var(--mono);
@@ -174,8 +153,6 @@
         color: #1a110a;
         font-weight:750;
       }
-      [data-theme="light"] .btn.primary{ color:#1a110a; }
-
       .btn.danger{
         border-color: rgba(255,77,77,.45);
         background: rgba(255,77,77,.12);
@@ -184,7 +161,6 @@
         border-color: rgba(61,220,132,.45);
         background: rgba(61,220,132,.10);
       }
-
       .btn.small{ padding:8px 10px; border-radius:11px; font-size:13px; }
       .btn.icon{
         padding:10px 11px;
@@ -196,13 +172,9 @@
 
       .grid{
         display:grid;
-        grid-template-columns: 1.2fr .8fr;
+        grid-template-columns: 1fr;
         gap:18px;
         padding:18px 0 26px;
-      }
-
-      @media (max-width: 980px){
-        .grid{ grid-template-columns:1fr; }
       }
 
       .card{
@@ -215,7 +187,6 @@
       [data-theme="light"] .card{
         background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.7));
       }
-
       .card .hd{
         padding:16px var(--pad);
         border-bottom:1px solid var(--line);
@@ -223,6 +194,7 @@
         align-items:center;
         justify-content:space-between;
         gap:12px;
+        flex-wrap:wrap;
       }
       .card .hd h2{
         margin:0;
@@ -234,7 +206,6 @@
         font-size:12px;
         color:var(--muted2);
       }
-
       .card .bd{ padding: var(--pad); }
 
       .row{
@@ -242,7 +213,7 @@
         grid-template-columns: 1fr 1fr;
         gap:12px;
       }
-      @media (max-width: 640px){
+      @media (max-width: 780px){
         .row{ grid-template-columns: 1fr; }
       }
 
@@ -268,38 +239,48 @@
         background: rgba(255,255,255,.9);
         color: var(--text);
       }
-      textarea{ min-height:90px; resize:vertical; font-family: var(--mono); font-size: 12px; }
 
-      .inline{
+      .sep{ height:1px; background: var(--line); margin:14px 0; }
+
+      .statusline{
         display:flex;
-        align-items:flex-end;
         gap:10px;
+        align-items:center;
         flex-wrap:wrap;
       }
-      .inline > *{ flex:1; min-width: 160px; }
-      .inline .btn{ flex:0 0 auto; }
 
-      .sep{
-        height:1px;
-        background: var(--line);
-        margin:14px 0;
+      .badge{
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:6px 10px;
+        border-radius:999px;
+        border:1px solid var(--line);
+        background: rgba(255,255,255,.05);
+        font-size:12px;
+      }
+      [data-theme="light"] .badge{ background: rgba(255,255,255,.7); }
+      .badge .dot{
+        width:8px;height:8px;border-radius:99px;
+        background: var(--accent);
+        box-shadow: 0 0 0 4px rgba(196,122,58,.15);
       }
 
-      .statline{
-        display:flex;
+      .stats{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
         gap:12px;
-        flex-wrap:wrap;
+      }
+      @media (max-width: 780px){
+        .stats{ grid-template-columns: 1fr; }
       }
       .stat{
-        padding:10px 12px;
+        padding:12px;
         border:1px solid var(--line);
         border-radius: 14px;
         background: rgba(255,255,255,.05);
-        min-width: 220px;
-        flex: 1 1 220px;
       }
       [data-theme="light"] .stat{ background: rgba(255,255,255,.75); }
-
       .stat .k{ font-size:12px; color:var(--muted2); }
       .stat .v{
         margin-top:4px;
@@ -336,22 +317,13 @@
 
       .mono{ font-family:var(--mono); }
       .muted{ color:var(--muted2); }
-      .badge{
-        display:inline-flex;
-        align-items:center;
-        gap:8px;
-        padding:6px 10px;
-        border-radius:999px;
-        border:1px solid var(--line);
-        background: rgba(255,255,255,.05);
-        font-size:12px;
-      }
-      [data-theme="light"] .badge{ background: rgba(255,255,255,.7); }
 
-      .badge .dot{
-        width:8px;height:8px;border-radius:99px;
-        background: var(--accent);
-        box-shadow: 0 0 0 4px rgba(196,122,58,.15);
+      .inline-actions{
+        display:flex;
+        gap:10px;
+        align-items:center;
+        flex-wrap:wrap;
+        justify-content:flex-end;
       }
 
       .toast{
@@ -370,10 +342,7 @@
         overflow:hidden;
       }
       [data-theme="light"] .toast{ background: rgba(255,255,255,.85); }
-      .toast .bar{
-        height:4px;
-        background: linear-gradient(90deg, var(--accent), rgba(255,234,214,.7));
-      }
+      .toast .bar{ height:4px; background: linear-gradient(90deg, var(--accent), rgba(255,234,214,.7)); }
       .toast .msg{
         padding: 12px 14px;
         font-size: 12px;
@@ -398,9 +367,7 @@
         box-shadow: var(--shadow);
         overflow:hidden;
       }
-      [data-theme="light"] .overlay .box{
-        background: rgba(255,255,255,.92);
-      }
+      [data-theme="light"] .overlay .box{ background: rgba(255,255,255,.92); }
       .overlay .box .hd{
         padding:14px 16px;
         border-bottom:1px solid var(--line);
@@ -419,30 +386,63 @@
         font-family: var(--mono);
       }
 
-      .kpi{
-        display:flex;
+      .smallnote{
+        margin-top:6px;
+        font-size:12px;
+        color:var(--muted2);
+      }
+
+      .progress{
+        width:100%;
+        height:10px;
+        border-radius:999px;
+        border:1px solid var(--line);
+        background: rgba(255,255,255,.05);
+        overflow:hidden;
+        margin-top:6px;
+      }
+      .progress .bar{
+        height:100%;
+        width:0%;
+        background: linear-gradient(90deg, var(--accent), rgba(255,234,214,.7));
+      }
+
+      .pillmini{
+        display:inline-flex;
+        gap:8px;
         align-items:center;
-        gap:10px;
-      }
-
-      .kpi .big{
-        font-size:13px;
-        font-weight:850;
-        letter-spacing:.2px;
-      }
-
-      .foot{
-        padding: 14px 0 28px;
-        color: var(--muted2);
+        border:1px solid var(--line);
+        background: rgba(255,255,255,.05);
+        border-radius: 999px;
+        padding: 6px 10px;
         font-size: 12px;
       }
+      [data-theme="light"] .pillmini{ background: rgba(255,255,255,.7); }
 
-      .right-actions{
-        display:flex;
-        gap:10px;
-        align-items:center;
-        flex-wrap:wrap;
-        justify-content:flex-end;
+      details.advanced{
+        margin-top:14px;
+        border:1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255,255,255,.04);
+        padding:10px 12px;
+      }
+      [data-theme="light"] details.advanced{ background: rgba(0,0,0,.02); }
+      details.advanced summary{
+        cursor:pointer;
+        font-size:12px;
+        color: var(--muted);
+        user-select:none;
+        font-weight:650;
+      }
+      details.advanced .advanced-body{
+        margin-top:10px;
+        font-size:12px;
+        color: var(--muted2);
+        line-height:1.35;
+      }
+      details.advanced code{
+        font-family: var(--mono);
+        font-size: 12px;
       }
     </style>
   </head>
@@ -455,8 +455,8 @@
             <div class="brand">
               <div class="logo" aria-hidden="true"></div>
               <div>
-                <h1>Savings Vault</h1>
-                <div class="sub">Cardano Preprod • Lucid.js</div>
+                <h1>Blockchain Aided Savings</h1>
+                <div class="sub">Preprod • Lucid.js v0.10.11</div>
               </div>
             </div>
 
@@ -471,7 +471,7 @@
                 <span>Theme</span>
               </button>
 
-              <button class="btn primary icon" id="refreshBtn" type="button">
+              <button class="btn primary icon" id="refreshBtn" type="button" title="Refresh">
                 <span class="mono">⟳</span>
                 <span>Refresh</span>
               </button>
@@ -482,25 +482,43 @@
 
       <main class="wrap">
         <div class="grid">
-          <!-- LEFT: VAULTS -->
+
+          <!-- CARD 1: CONNECT -->
           <section class="card">
             <div class="hd">
-              <div class="kpi">
+              <div class="statusline">
                 <span class="badge"><span class="dot"></span><span id="statusLabel">Not connected</span></span>
-                <span class="muted" id="statusSub">Initialize provider, then connect wallet.</span>
+                <span class="muted" id="statusSub">Paste Blockfrost key, initialize, then connect wallet.</span>
               </div>
-              <div class="right-actions">
+              <div class="inline-actions">
                 <button class="btn small good" id="connectBtn" type="button">Connect Wallet</button>
                 <button class="btn small danger" id="disconnectBtn" type="button" disabled>Disconnect</button>
               </div>
             </div>
 
             <div class="bd">
-              <div class="statline">
-                <div class="stat">
-                  <div class="k">Script Address</div>
-                  <div class="v" id="scriptAddr">—</div>
+              <div class="row">
+                <div>
+                  <label>Blockfrost project_id (Preprod)</label>
+                  <input id="bfKey" placeholder="preprod..." class="mono" />
+                  <div class="smallnote">Paste your Blockfrost key and click Initialize.</div>
                 </div>
+                <div>
+                  <label>Wallet</label>
+                  <select id="walletSelect">
+                    <option value="">Auto-detect</option>
+                  </select>
+                  <div class="smallnote">We populate this from <span class="mono">window.cardano</span> via CIP-30.</div>
+                </div>
+              </div>
+
+              <div class="inline-actions" style="margin-top:12px;">
+                <button class="btn primary" id="initBtn" type="button">Initialize</button>
+              </div>
+
+              <div class="sep"></div>
+
+              <div class="stats">
                 <div class="stat">
                   <div class="k">Wallet Address</div>
                   <div class="v" id="walletAddr">—</div>
@@ -511,135 +529,126 @@
                 </div>
               </div>
 
-              <div class="sep"></div>
-
-              <div class="inline">
-                <div>
-                  <label>Quick actions</label>
-                  <div class="badge" title="Deposit fee schedule is computed off-chain (requiredDepositFeeLovel)">
-                    <span class="dot"></span>
-                    <span class="mono">Fees + Auto Sync enabled</span>
-                  </div>
+              <details class="advanced">
+                <summary>Advanced / Developer info</summary>
+                <div class="advanced-body">
+                  <div>• Your Blockfrost key is stored locally for convenience (<code>localStorage</code>).</div>
+                  <div>• Your wallet PKH is derived from the connected CIP-30 wallet address.</div>
                 </div>
-                <button class="btn" id="viewKeyBtn" type="button">Show Stored Blockfrost Key</button>
-              </div>
-
-              <div class="sep"></div>
-
-              <div class="inline" style="align-items:flex-end;">
-                <div>
-                  <label>Find vault by UTxO</label>
-                  <input id="findTxHash" placeholder="txHash" class="mono" />
-                </div>
-                <div>
-                  <label>&nbsp;</label>
-                  <input id="findIndex" placeholder="outputIndex" inputmode="numeric" />
-                </div>
-                <button class="btn" id="findBtn" type="button">Find</button>
-              </div>
-
-              <div class="sep"></div>
-
-              <div style="overflow:auto;">
-                <table class="table" id="vaultTable">
-                  <thead>
-                    <tr>
-                      <th style="width:26%;">Vault UTxO</th>
-                      <th style="width:18%;">Current (ADA)</th>
-                      <th style="width:18%;">Target (ADA)</th>
-                      <th style="width:18%;">Owner / Beneficiary</th>
-                      <th style="width:20%;">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="vaultTbody">
-                    <tr><td colspan="5" class="muted">No vaults loaded yet.</td></tr>
-                  </tbody>
-                </table>
-              </div>
+              </details>
             </div>
           </section>
 
-          <!-- RIGHT: CONFIG + CREATE -->
-          <aside class="card">
+          <!-- CARD 2: CREATE VAULT -->
+          <section class="card">
             <div class="hd">
-              <h2>Provider & Create Vault</h2>
-              <div class="hint">Blockfrost key is stored locally</div>
+              <h2>Create a Savings Vault</h2>
+              <div class="hint">Choose how the vault unlocks, then deposit</div>
             </div>
+
             <div class="bd">
               <div class="row">
                 <div>
-                  <label>Blockfrost project_id (Preprod)</label>
-                  <input id="bfKey" placeholder="preprod..." class="mono" />
-                  <div class="muted" style="margin-top:6px;font-size:12px;">
-                    This is the space to paste your Blockfrost key, then click <span class="mono">Initialize</span>.
-                  </div>
+                  <label>Vault name (optional)</label>
+                  <input id="vaultDesc" placeholder="e.g. School fees savings" />
                 </div>
+
                 <div>
-                  <label>Wallet (optional)</label>
-                  <select id="walletSelect">
-                    <option value="">Auto-detect</option>
-                    <option value="lace">lace</option>
-                    <option value="eternl">eternl</option>
-                    <option value="nami">nami</option>
-                    <option value="flint">flint</option>
-                    <option value="typhon">typhon</option>
-                    <option value="gerowallet">gerowallet</option>
-                    <option value="yoroi">yoroi</option>
+                  <label>Beneficiary payment key hash (optional)</label>
+                  <input id="beneficiary" placeholder="leave empty to pay owner" class="mono" />
+                  <div class="smallnote">Must be 56 hex chars (28 bytes). Leave empty to use owner.</div>
+                </div>
+
+                <div>
+                  <label>Unlock type (mode)</label>
+                  <select id="mode">
+                    <option value="0">Time lock</option>
+                    <option value="1">Target amount</option>
+                    <option value="2">Time lock + target</option>
                   </select>
                 </div>
-              </div>
 
-              <div class="inline" style="margin-top:12px;">
-                <button class="btn primary" id="initBtn" type="button">Initialize</button>
-                <button class="btn" id="loadStoredBtn" type="button">Load Stored Key</button>
-                <button class="btn danger" id="clearStoredBtn" type="button">Clear Stored Key</button>
-              </div>
-
-              <div class="sep"></div>
-
-              <div class="row">
                 <div>
-                  <label>Beneficiary PKH (hex, optional)</label>
-                  <input id="beneficiary" placeholder="leave empty to pay owner" class="mono" />
-                </div>
-                <div>
-                  <label>Mode / Policy</label>
-                  <div class="row" style="grid-template-columns: 1fr 1fr;">
-                    <input id="mode" placeholder="mode (number)" inputmode="numeric" />
-                    <input id="policy" placeholder="policy (number)" inputmode="numeric" />
-                  </div>
+                  <label>Withdrawal policy</label>
+                  <select id="policy">
+                    <option value="0">Strict (no force withdraw)</option>
+                    <option value="1">Non-strict (force withdraw allowed with penalty)</option>
+                  </select>
+                  <div class="smallnote">ForceWithdraw requires <span class="mono">policy == 1</span>.</div>
                 </div>
 
                 <div>
-                  <label>Target (ADA)</label>
+                  <label>Target amount (ADA)</label>
                   <input id="targetAda" placeholder="e.g. 100" />
+                  <div class="smallnote">Used for “Target amount” and “Time lock + target”.</div>
                 </div>
+
                 <div>
-                  <label>Unlock time (ms since epoch)</label>
-                  <input id="unlockMs" placeholder="0 for none" inputmode="numeric" class="mono" />
+                  <label>Unlock date & time (optional)</label>
+                  <input id="unlockDate" type="datetime-local" />
+                  <div class="smallnote">Used for “Time lock” and “Time lock + target”.</div>
+                  <input id="unlockMs" type="hidden" class="mono" />
                 </div>
 
                 <div>
                   <label>Initial deposit (ADA)</label>
                   <input id="initialAda" placeholder="e.g. 5" />
                 </div>
-                <div>
-                  <label>&nbsp;</label>
-                  <button class="btn primary" id="createBtn" type="button">Create Vault</button>
+              </div>
+
+              <div class="inline-actions" style="margin-top:12px;">
+                <button class="btn primary" id="createBtn" type="button">Create Vault</button>
+              </div>
+
+              <details class="advanced">
+                <summary>Advanced / Developer info</summary>
+                <div class="advanced-body">
+                  <div>• “Vault name” is off-chain only (saved in your browser per vault UTxO).</div>
+                  <div>• Datum uses raw bytes hex for owner/beneficiary (no bech32).</div>
+                  <div>• Deposit fees are enforced by the validator; deposit action pays treasury based on delta.</div>
                 </div>
+              </details>
+            </div>
+          </section>
+
+          <!-- CARD 3: MY VAULTS -->
+          <section class="card">
+            <div class="hd">
+              <h2>My Vaults</h2>
+              <div class="hint">Only vaults owned by the connected wallet are shown</div>
+            </div>
+
+            <div class="bd">
+              <div style="overflow:auto;">
+                <table class="table" id="vaultTable">
+                  <thead>
+                    <tr>
+                      <th style="width:30%;">Vault</th>
+                      <th style="width:16%;">Current</th>
+                      <th style="width:20%;">Progress</th>
+                      <th style="width:14%;">Unlock</th>
+                      <th style="width:20%;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vaultTbody">
+                    <tr><td colspan="5" class="muted">Connect wallet to see your vaults.</td></tr>
+                  </tbody>
+                </table>
               </div>
 
               <div class="sep"></div>
+              <label class="muted">Activity log</label>
+              <textarea id="log" readonly spellcheck="false" style="min-height:70px;"></textarea>
 
-              <label>Logs</label>
-              <textarea id="log" readonly spellcheck="false"></textarea>
-
-              <div class="foot">
-                Tip: If you get “Missing Blockfrost project_id”, initialize first (key stored under
-                <span class="mono">sv_blockfrost_preprod_project_id</span>).
-              </div>
+              <details class="advanced">
+                <summary>Advanced / Developer info</summary>
+                <div class="advanced-body">
+                  Use “Details” to view the raw vault object. Errors show decoded details from <code>extractErrorDetails()</code>.
+                </div>
+              </details>
             </div>
-          </aside>
+          </section>
+
         </div>
       </main>
 
@@ -671,15 +680,11 @@
       const statusLabel = $("statusLabel");
       const statusSub = $("statusSub");
 
-      const scriptAddr = $("scriptAddr");
       const walletAddr = $("walletAddr");
       const walletBal = $("walletBal");
 
       const bfKey = $("bfKey");
       const initBtn = $("initBtn");
-      const loadStoredBtn = $("loadStoredBtn");
-      const clearStoredBtn = $("clearStoredBtn");
-      const viewKeyBtn = $("viewKeyBtn");
 
       const connectBtn = $("connectBtn");
       const disconnectBtn = $("disconnectBtn");
@@ -689,15 +694,14 @@
       const themeBtn = $("themeBtn");
 
       const vaultTbody = $("vaultTbody");
-      const findTxHash = $("findTxHash");
-      const findIndex = $("findIndex");
-      const findBtn = $("findBtn");
 
+      const vaultDesc = $("vaultDesc");
       const beneficiary = $("beneficiary");
       const mode = $("mode");
       const policy = $("policy");
       const targetAda = $("targetAda");
-      const unlockMs = $("unlockMs");
+      const unlockDate = $("unlockDate");
+      const unlockMs = $("unlockMs"); // hidden
       const initialAda = $("initialAda");
       const createBtn = $("createBtn");
 
@@ -760,12 +764,8 @@
         try { return (localStorage.getItem(LS_BF) || "").trim(); } catch { return ""; }
       }
 
-      function setStoredKey(k) {
-        try { localStorage.setItem(LS_BF, String(k || "").trim()); } catch {}
-      }
-
-      function clearStoredKey() {
-        try { localStorage.removeItem(LS_BF); } catch {}
+      function setStoredKey(v) {
+        try { localStorage.setItem(LS_BF, String(v || "").trim()); } catch {}
       }
 
       function disableWhile(btn, fn) {
@@ -777,10 +777,63 @@
         };
       }
 
+      // ---------- mapping ----------
+      const MODE_NAMES = { 0: "Time lock", 1: "Target amount", 2: "Time lock + target" };
+      const POLICY_NAMES = { 0: "Strict", 1: "Non-strict" };
+
+      function modeName(n) {
+        const k = Number(n);
+        return MODE_NAMES[k] ?? `Mode ${k}`;
+      }
+      function policyName(n) {
+        const k = Number(n);
+        return POLICY_NAMES[k] ?? `Policy ${k}`;
+      }
+
+      // ---------- datetime-local -> ms ----------
+      function updateUnlockMsFromPicker() {
+        const v = String(unlockDate.value || "").trim();
+        if (!v) {
+          unlockMs.value = "0";
+          return 0;
+        }
+        const d = new Date(v);
+        const ms = Number.isFinite(d.getTime()) ? d.getTime() : 0;
+        unlockMs.value = String(ms || 0);
+        return ms || 0;
+      }
+      unlockDate.addEventListener("change", updateUnlockMsFromPicker);
+      unlockDate.addEventListener("input", updateUnlockMsFromPicker);
+
+      // ---------- countdown ----------
+      function formatCountdown(msLeft) {
+        if (msLeft <= 0) return "Unlocked";
+        const s = Math.floor(msLeft / 1000);
+        const days = Math.floor(s / 86400);
+        const hrs  = Math.floor((s % 86400) / 3600);
+        const mins = Math.floor((s % 3600) / 60);
+        const secs = s % 60;
+        if (days > 0) return `${days}d ${hrs}h ${mins}m`;
+        if (hrs > 0) return `${hrs}h ${mins}m ${secs}s`;
+        if (mins > 0) return `${mins}m ${secs}s`;
+        return `${secs}s`;
+      }
+
+      function updateCountdowns() {
+        document.querySelectorAll("[data-unlock-ms]").forEach((el) => {
+          const unlock = Number(el.getAttribute("data-unlock-ms") || "0");
+          if (!unlock) { el.textContent = "—"; return; }
+          const left = unlock - Date.now();
+          el.textContent = formatCountdown(left);
+        });
+      }
+
       // ---------- state ----------
       let initialized = false;
       let connected = false;
       let lastVaults = [];
+      let prevBalanceAda = null;
+      let prevVaultFingerprint = null;
 
       // ---------- theme ----------
       function applyTheme(theme) {
@@ -799,38 +852,103 @@
       };
 
       // ---------- network pill ----------
-      netPill.textContent = offchain.NETWORK || "—";
+      // lucid.js doesn't export NETWORK constant; show static label.
+      netPill.textContent = "Preprod";
 
-      // ---------- render vaults ----------
+      // ---------- wallet list ----------
+      function populateWalletSelect() {
+        const available = offchain.getAvailableWallets();
+        walletSelect.innerHTML = `<option value="">Auto-detect</option>` + available
+          .map((w) => `<option value="${w}">${w}</option>`)
+          .join("");
+      }
+
+      // ---------- render vaults (MY VAULTS ONLY) ----------
+      function computeProgressPercent(v) {
+        const cur = Number(v.lovelaceAda || "0");
+        const tgt = Number(v.decodedDatum?.vdTargetAda || "0");
+        if (!tgt || tgt <= 0) return null;
+        const pct = Math.max(0, Math.min(100, (cur / tgt) * 100));
+        return pct;
+      }
+
       function renderVaults(vaults) {
         lastVaults = vaults || [];
 
+        if (!connected) {
+          vaultTbody.innerHTML = `<tr><td colspan="5" class="muted">Connect wallet to see your vaults.</td></tr>`;
+          return;
+        }
+
         if (!vaults || vaults.length === 0) {
-          vaultTbody.innerHTML = `<tr><td colspan="5" class="muted">No vault UTxOs found at the script address.</td></tr>`;
+          vaultTbody.innerHTML = `<tr><td colspan="5" class="muted">No vaults found for this wallet.</td></tr>`;
           return;
         }
 
         const rows = vaults.map((v) => {
           const id = `${v.txHash}#${v.outputIndex}`;
-          const owner = shorten(v.ownerPkhHex, 10, 10);
-          const ben = v.beneficiaryPkhHex ? shorten(v.beneficiaryPkhHex, 10, 10) : "—";
-          const cur = v.currentAda ?? "—";
-          const tgt = v.targetAda ?? "—";
+          const desc = (v.description || "").trim();
+
+          const curAda = v.lovelaceAda ?? "—";
+          const tgtAda = v.decodedDatum?.vdTargetAda ?? "—";
+          const modeVal = Number(v.decodedDatum?.vdMode ?? 0);
+          const policyVal = Number(v.decodedDatum?.vdPolicy ?? 0);
+
+          const unlock = Number(v.decodedDatum?.vdUnlockTimeMs ?? "0");
+          const unlockDateText = unlock ? new Date(unlock).toLocaleString() : "";
+
+          const bene = v.decodedDatum?.vdBeneficiary || "";
+          const beneShown = bene ? shorten(bene, 12, 12) : "—";
+
+          const pct = computeProgressPercent(v);
+          const progressHtml = (pct == null)
+            ? `<div class="muted">No target</div>`
+            : `
+              <div class="pillmini">
+                <span>${pct.toFixed(1)}%</span>
+                <span class="muted">of</span>
+                <span class="mono">${tgtAda} ADA</span>
+              </div>
+              <div class="progress"><div class="bar" style="width:${pct}%"></div></div>
+            `;
+
+          const mp = `${modeName(modeVal)} • ${policyName(policyVal)}`;
 
           return `
             <tr>
               <td>
                 <div class="mono" title="${id}">${shorten(v.txHash, 14, 10)}#${v.outputIndex}</div>
-                <div class="muted mono" style="margin-top:6px;">unlock: ${v.unlockTime}</div>
+
+                ${desc ? `<div style="margin-top:6px; font-weight:650;">${desc}</div>` : ""}
+
+                <div class="muted" style="margin-top:6px;">
+                  ${mp}
+                </div>
+
+                <div class="muted mono" style="margin-top:6px;">
+                  beneficiary: ${beneShown}
+                </div>
               </td>
-              <td class="mono">${cur}</td>
-              <td class="mono">${tgt}</td>
-              <td>
-                <div class="mono">owner: ${owner}</div>
-                <div class="muted mono" style="margin-top:6px;">ben: ${ben}</div>
+
+              <td class="mono">
+                ${curAda} ADA
               </td>
+
               <td>
-                <div class="inline" style="gap:8px; align-items:center;">
+                ${progressHtml}
+              </td>
+
+              <td>
+                <div class="mono" data-unlock-ms="${unlock}">—</div>
+                ${
+                  unlock
+                    ? `<div class="muted" style="margin-top:6px;">${unlockDateText}</div>`
+                    : `<div class="muted">No time lock</div>`
+                }
+              </td>
+
+              <td>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
                   <button class="btn small" data-act="deposit" data-id="${id}">Deposit</button>
                   <button class="btn small good" data-act="withdraw" data-id="${id}">Withdraw</button>
                   <button class="btn small danger" data-act="force" data-id="${id}">Force</button>
@@ -842,8 +960,8 @@
         });
 
         vaultTbody.innerHTML = rows.join("");
+        updateCountdowns();
 
-        // bind actions
         vaultTbody.querySelectorAll("button[data-act]").forEach((b) => {
           b.addEventListener("click", async () => {
             const act = b.getAttribute("data-act");
@@ -853,7 +971,7 @@
 
             if (act === "details") {
               const found = lastVaults.find((x) => x.txHash === txHash && Number(x.outputIndex) === outputIndex);
-              showOverlay("Vault details", JSON.stringify(found, null, 2));
+              showOverlay("Vault details", offchain.safeStringify(found, 2));
               return;
             }
 
@@ -868,8 +986,8 @@
 
               await runWithOverlay("Depositing…", async () => {
                 const res = await offchain.depositToVault({ txHash, outputIndex, amountAda });
-                log(`depositToVault => txHash=${res.txHash} feeAda=${res.feeAda}`);
-                toastify(`Deposit submitted: ${res.txHash}\nFee: ${res.feeAda} ADA`);
+                log(`depositToVault => txHash=${res.txHash}`);
+                toastify(`Deposit submitted: ${res.txHash}`);
                 await refreshAll();
               });
               return;
@@ -880,7 +998,7 @@
 
               await runWithOverlay("Withdrawing…", async () => {
                 const res = await offchain.withdrawVault({ txHash, outputIndex });
-                log(`withdrawVault => txHash=${res.txHash} recipient=${res.recipientAddress}`);
+                log(`withdrawVault => txHash=${res.txHash}`);
                 toastify(`Withdraw submitted: ${res.txHash}`);
                 await refreshAll();
               });
@@ -888,12 +1006,12 @@
             }
 
             if (act === "force") {
-              if (!confirm("Force withdraw applies penalty. Continue?")) return;
+              if (!confirm("Force withdraw applies a penalty and requires Non-strict policy (policy=1). Continue?")) return;
 
               await runWithOverlay("Force withdrawing…", async () => {
                 const res = await offchain.forceWithdrawVault({ txHash, outputIndex });
-                log(`forceWithdrawVault => txHash=${res.txHash} penaltyAda=${res.penaltyAda}`);
-                toastify(`Force withdraw submitted: ${res.txHash}\nPenalty: ${res.penaltyAda} ADA`);
+                log(`forceWithdrawVault => txHash=${res.txHash}`);
+                toastify(`Force withdraw submitted: ${res.txHash}`);
                 await refreshAll();
               });
               return;
@@ -909,13 +1027,13 @@
           const out = await fn();
           return out;
         } catch (e) {
-          const msg = e?.message ? String(e.message) : String(e);
+          const details = offchain.extractErrorDetails(e);
+          const msg = `${details.name}: ${details.message}${details.cause ? `\nCause: ${details.cause}` : ""}`;
           showOverlay("Error", msg);
           toastify(msg);
           log("ERROR: " + msg);
           throw e;
         } finally {
-          // keep overlay open if it's an error; otherwise auto-hide after a moment
           if (overlayTitle.textContent !== "Error") {
             setTimeout(() => hideOverlay(), 700);
           }
@@ -929,28 +1047,36 @@
 
       // ---------- init / connect ----------
       async function initialize(blockfrostKey) {
-        const res = await offchain.initLucid({ blockfrostKey });
+        await offchain.initLucid({ blockfrostKey });
         initialized = true;
 
-        scriptAddr.textContent = res.scriptAddress || "—";
-        setStatus("Initialized", "Now connect your wallet.");
-        log(`initLucid OK => scriptAddress=${res.scriptAddress}`);
-        toastify("Initialized. Script address computed.");
+        setStoredKey(blockfrostKey);
 
+        setStatus("Initialized", "Now connect your wallet.");
+        log(`initLucid OK`);
+        toastify("Initialized.");
+
+        populateWalletSelect();
         await refreshVaultsOnly();
       }
 
       async function connect() {
-        const walletName = walletSelect.value || "";
-        const res = await offchain.connectWallet(walletName);
+        // if Auto-detect: pick first available wallet
+        let name = (walletSelect.value || "").trim();
+        if (!name) {
+          const wallets = offchain.getAvailableWallets();
+          if (!wallets.length) throw new Error("No CIP-30 wallets detected. Install Nami/Eternl/Lace/etc.");
+          name = wallets[0];
+        }
+
+        const res = await offchain.connectWallet(name);
         connected = true;
 
         walletAddr.textContent = res.walletAddress || "—";
-        walletBal.textContent = res.balanceAda || "—";
-        scriptAddr.textContent = res.scriptAddress || scriptAddr.textContent || "—";
+        walletBal.textContent = await offchain.getBalanceAda();
 
         disconnectBtn.disabled = false;
-        setStatus(`Connected (${res.walletName})`, "Ready. Create / deposit / withdraw.");
+        setStatus(`Connected (${res.walletName})`, "Your vaults are now displayed.");
         log(`connectWallet OK => ${res.walletName} pkh=${res.walletPkhHex}`);
         toastify(`Connected: ${res.walletName}`);
 
@@ -958,34 +1084,46 @@
       }
 
       async function disconnect() {
-        offchain.disconnectWallet();
+        // lucid.js doesn't export disconnect; just soft-reset UI state.
         connected = false;
 
         walletAddr.textContent = "—";
         walletBal.textContent = "—";
         disconnectBtn.disabled = true;
 
-        setStatus("Disconnected", "You can reconnect anytime.");
-        log("disconnectWallet OK");
+        setStatus("Disconnected", "Connect again to view your vaults.");
+        log("UI disconnected (reload page to fully reset Lucid wallet selection).");
         toastify("Disconnected.");
+
+        renderVaults([]);
       }
 
       // ---------- refresh ----------
       async function refreshWallet() {
         if (!connected) return;
-        const st = await offchain.refreshWalletState();
-        walletAddr.textContent = st.walletAddress || "—";
-        walletBal.textContent = st.balanceAda || "—";
+        walletBal.textContent = await offchain.getBalanceAda();
       }
 
       async function refreshVaultsOnly() {
         if (!initialized) return;
-        const vaults = await offchain.listVaults();
+
+        if (!connected) {
+          renderVaults([]);
+          return;
+        }
+
+        const vaults = await offchain.listMyVaults();
         renderVaults(vaults);
       }
 
       async function refreshAll() {
         if (!initialized) return;
+
+        // Use syncAfterTx for consistent state fingerprinting
+        const sync = await offchain.syncAfterTx({ prevBalanceAda, prevVaultFingerprint });
+        prevBalanceAda = sync.balanceAda;
+        prevVaultFingerprint = sync.vaultFingerprint;
+
         await refreshWallet().catch(() => {});
         await refreshVaultsOnly().catch(() => {});
       }
@@ -1000,30 +1138,12 @@
         await runWithOverlay("Initializing…", async () => initialize(key));
       });
 
-      loadStoredBtn.onclick = () => {
-        const k = getStoredKey();
-        bfKey.value = k;
-        toastify(k ? "Loaded stored key into input." : "No stored key found.");
-      };
-
-      clearStoredBtn.onclick = () => {
-        clearStoredKey();
-        bfKey.value = "";
-        toastify("Stored key cleared.");
-        log("Cleared stored Blockfrost key.");
-      };
-
-      viewKeyBtn.onclick = () => {
-        const k = getStoredKey();
-        showOverlay("Stored Blockfrost key", k ? k : "(none)");
-      };
-
       connectBtn.onclick = disableWhile(connectBtn, async () => {
         if (!initialized) {
           const stored = getStoredKey();
           const keyToUse = (bfKey.value || stored || "").trim();
           if (!keyToUse) {
-            toastify("Initialize first: paste Blockfrost key and click Initialize.");
+            toastify("Paste Blockfrost key, then Initialize.");
             return;
           }
           await runWithOverlay("Initializing…", async () => initialize(keyToUse));
@@ -1038,41 +1158,20 @@
         toastify("Refreshed.");
       });
 
-      // Find vault
-      findBtn.onclick = disableWhile(findBtn, async () => {
-        if (!initialized) {
-          toastify("Initialize first.");
-          return;
-        }
-        const txHash = (findTxHash.value || "").trim();
-        const outputIndex = Number((findIndex.value || "").trim());
-        if (!txHash || !Number.isFinite(outputIndex)) {
-          toastify("Provide txHash and outputIndex.");
-          return;
-        }
-        await runWithOverlay("Finding vault…", async () => {
-          const v = await offchain.getVaultById({ txHash, outputIndex });
-          if (!v) {
-            toastify("Vault not found at script address.");
-            showOverlay("Not found", "No matching UTxO found at the script address.");
-            return;
-          }
-          showOverlay("Vault found", JSON.stringify(v, null, 2));
-        });
-      });
-
-      // Create vault
+      // ✅ Create vault (with description - stored off-chain by lucid.js best-effort)
       createBtn.onclick = disableWhile(createBtn, async () => {
         if (!connected) {
           toastify("Connect wallet first.");
           return;
         }
 
+        const unlockTimeMs = updateUnlockMsFromPicker();
+
+        const description = (vaultDesc.value || "").trim();
         const beneficiaryPkhHex = (beneficiary.value || "").trim();
         const m = Number((mode.value || "0").trim() || "0");
         const p = Number((policy.value || "0").trim() || "0");
         const tAda = (targetAda.value || "0").trim();
-        const uMs = Number((unlockMs.value || "0").trim() || "0");
         const initAda = (initialAda.value || "0").trim();
 
         await runWithOverlay("Creating vault…", async () => {
@@ -1081,31 +1180,44 @@
             mode: m,
             policy: p,
             targetAda: tAda,
-            unlockTimeMs: uMs,
+            unlockTimeMs: unlockTimeMs || 0,
             initialDepositAda: initAda,
+            description,
           });
+
           log(`createVault => txHash=${res.txHash}`);
           toastify(`Vault created: ${res.txHash}`);
+
+          vaultDesc.value = "";
+          beneficiary.value = "";
+          targetAda.value = "";
+          unlockDate.value = "";
+          unlockMs.value = "0";
+          initialAda.value = "";
+
           await refreshAll();
         });
       });
 
-      // ---------- on load: try auto-init ----------
+      // ---------- on load ----------
       (async function boot() {
         try {
           setStatus("Not connected", "Paste Blockfrost key and Initialize.");
+          populateWalletSelect();
+
           const stored = getStoredKey();
           if (stored) {
             bfKey.value = stored;
             log("Found stored Blockfrost key in localStorage.");
-            // auto-init for convenience
             await initialize(stored);
           }
         } catch (e) {
-          const msg = e?.message ? String(e.message) : String(e);
-          log("Boot init failed: " + msg);
+          const details = offchain.extractErrorDetails(e);
+          log("Boot init failed: " + details.message);
         }
       })();
+
+      setInterval(() => updateCountdowns(), 1000);
     </script>
   </body>
 </html>
