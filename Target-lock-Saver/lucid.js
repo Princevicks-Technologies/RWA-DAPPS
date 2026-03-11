@@ -861,18 +861,31 @@ export async function withdrawVault({ txHash, outputIndex }) {
   if (payout <= 0n) throw new Error("Vault balance too small to withdraw after fee slack.");
 
   const feeUtxo = await chooseFeeUtxo();
-
   const redeemerHex = buildRedeemer("Withdraw");
 
-  const tx = await lucid
+  let txBuilder = lucid
     .newTx()
     .collectFrom([feeUtxo])
     .collectFrom([u], redeemerHex)
     .payToAddress(recipientAddr, { lovelace: payout })
     .addSignerKey(walletPkhHex)
-    .attachSpendingValidator(validator)
-    .complete();
+    .attachSpendingValidator(validator);
 
+  const mode = Number(decoded.vdMode ?? decoded.mode);
+  const unlockTime = Number(decoded.vdUnlockTime ?? decoded.unlockTime ?? 0);
+
+  if (mode === 0 || mode === 2) {
+    if (!Number.isFinite(unlockTime) || unlockTime <= 0) {
+      throw new Error("Invalid unlock time in datum.");
+    }
+
+    // Add safety buffer to avoid boundary/slot-rounding failure.
+    const VALID_FROM_BUFFER_MS = 5000;
+
+    txBuilder = txBuilder.validFrom(unlockTime + VALID_FROM_BUFFER_MS);
+  }
+
+  const tx = await txBuilder.complete();
   const signed = await tx.sign().complete();
   const submittedTxHash = await signed.submit();
 
